@@ -1,0 +1,24 @@
+app:
+    build: .
+    dockerfile: ./api/Dockerfile
+    command: python -u app.py
+    ports:
+        - "5000:5000"
+    volumes:
+        - ./api:/app
+    links:
+        - mongodb
+
+mongodb:
+    image: mongo
+    container_name: mongodb
+    environment:
+        - MONGO_INITDB_DATABASE=animal_db
+        - MONGO_INITDB_ROOT_USERNAME=root
+        - MONGO_INITDB_ROOT_PASSWORD=pass
+    volumes:
+        - ./mongodb/init-db.js:/docker-entrypoint-initdb.d/init-db.js:ro
+        - ./mongodb/mongodb/database:/data/db
+    ports:
+        - 27017:27017
+    restart: unless-stopped
