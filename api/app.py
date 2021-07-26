@@ -21,25 +21,25 @@ app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
 
 
 
-def get_db():
+def get_db(database):
     client = MongoClient('mongodb://mongodb:27017')
-    db = client["food"]
+    db = client[database]
     return db
 
 @app.route('/')
 def ping_server():
     return "Welcome to the world of animals."
 
-@app.route('/food')
-def get_stored_food():
-    db = get_db()
-    _fruits = db.fruits.find()
-    fruits = [{
-    "name": fruit["name"], 
-    "origin": fruit["origin"], 
-    "price": fruit["price"]
-    } for fruit in _fruits]
-    return jsonify({"fruits": fruits})
+@app.route('/patients')
+def get_patients_info():
+    db = get_db("patients")
+    _patients = db.patients.find()
+    patients = [{
+        "name":patient["name"],
+        "dob":patient["dob"],
+        "sex":patient["sex"]
+    } for patient in _patients]
+    return jsonify({"patients": patients})
 
 if __name__=='__main__':
     app.run(host="0.0.0.0", port=5000)
