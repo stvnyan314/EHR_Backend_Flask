@@ -1,0 +1,8 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "description": "This is a flask api to access the database",
+        "version": "1.0.0",
+        "title": "EHR Backend api"
+    }
+}

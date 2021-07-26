@@ -13,11 +13,9 @@ mongodb:
     image: mongo
     container_name: mongodb
     environment:
-        - MONGO_INITDB_DATABASE=animal_db
-        - MONGO_INITDB_ROOT_USERNAME=root
-        - MONGO_INITDB_ROOT_PASSWORD=pass
+        - PUID=1000
+        - PGID=1000
     volumes:
-        - ./mongodb/init-db.js:/docker-entrypoint-initdb.d/init-db.js:ro
         - ./mongodb/mongodb/database:/data/db
     ports:
         - 27017:27017
