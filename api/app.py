@@ -2,6 +2,9 @@ from flask import Flask, jsonify, request
 from flask_restx import Api, Resource, fields
 import pymongo
 from pymongo import MongoClient
+import json
+from bson.json_util import dumps
+from bson.objectid import ObjectId
 
 app = Flask(__name__)
 api = Api(app, version='1.0', title='Electronic Health Records',
@@ -33,41 +36,68 @@ def get_db(database):
     db = client[database]
     return db
 
+def get_collection(database, collection):
+    client = MongoClient('mongodb://mongodb:27017')
+    db = client[database]
+    coll = db.get_collection(collection)
+    return coll
+
+def parse_json(data):
+    return json.loads(dumps(data))
+
 @ns.route('/patients')
 class GetPatients(Resource):
     def get(self):
-        db = get_db("patients")
-        _patients = db.patients.find({},{ "_id": 0})
-        patients = [patient for patient in _patients]
+        coll = get_collection("patients", "patients")
+        _patients = coll.find({})
+        patients = [parse_json(patient) for patient in _patients]
         return jsonify({"patients": patients})
 
 
 @ns.route('/patient/<int:id>')
 class GetPatients(Resource):
     def get(self, id):
-        db = get_db("patients")
-        _patients = db.patients.find({},{ "_id": 0})
-        patients = [patient for patient in _patients]
+        coll = get_collection("patients", "patients")
+        _patients = coll.find({})
+        patients = [parse_json(patient) for patient in _patients]
         return jsonify({"patients": patients[id]})
 
 @ns.route('/newpatient')
 @ns.expect(patient_model)
 class AddPatient(Resource):
     def post(self):
-        db = get_db("patients")
-        db.patients.insert_one(request.json)
-        return {"status": db.patients.count()}
+        coll = get_collection("patients", "patients")
+        coll.insert_one(request.json)
+        return {"status": coll.count()}
 
 @ns.route('/findpatient')
 @ns.expect(patient_model)
 class FindPatients(Resource):
     def put(self):
-        db = get_db("patients")
         patient_query = request.json
-        _patients = db.patient.find(patient_query)
-        patients = [patient for patient in _patients]
-        print(patient_query)
-        return {"matching patient": patients}
+        coll = get_collection("patients", "patients")
+        _patients = coll.find(patient_query)
+        patients = [parse_json(patient) for patient in _patients]
+        return jsonify({"patients": patients})
+
+@ns.route('/deletepatient/<oid>')
+class DeletePatients(Resource):
+    def put(self, oid):
+        patient_delete = {"_id": ObjectId(oid)}
+        coll = get_collection("patients", "patients")
+        status = coll.delete_one(patient_delete)
+        return {"status": parse_json(status)}
+
+@ns.route('/updatepatient/<oid>')
+@ns.expect(patient_model)
+class UpdatePatients(Resource):
+    def put(self, oid):
+        patient_update = request.json
+        patient_update.append({"_id": {"$oid": oid}})
+        #coll = get_collection("patients", "patients")
+        #_patients = coll.update_one({"_id": {"$oid": oid}})
+        #patients = [parse_json(patient) for patient in _patients]
+        return jsonify({"patients": patient_update})
 
 
 if __name__=='__main__':
